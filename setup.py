@@ -25,7 +25,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='',
+    url='https://github.com/jcatw/scnn',
 
     # Author details
     author='James Atwood',
@@ -43,8 +43,8 @@ setup(
         'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Researchers',
-        'Topic :: Machine Learning',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
