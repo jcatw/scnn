@@ -6,12 +6,13 @@ An implementation of search-convolutional neural networks [1], a new model for g
 Installation
 ------------
 Using pip:
-.. code:: shell
+
     pip install scnn
 
 Usage
 -----
-    import numpy as np
+
+	import numpy as np
     from scnn import SCNN, data
     from sklearn.metrics import f1_score
 
