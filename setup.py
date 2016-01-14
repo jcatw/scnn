@@ -74,6 +74,7 @@ setup(
     install_requires=['numpy',
                       'theano',
                       'lasagne',
+                      'matplotlib',
                       ],
 
     # List additional groups of dependencies here (e.g. development
