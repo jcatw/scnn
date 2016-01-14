@@ -11,7 +11,6 @@ Using pip:
 
 Usage
 -----
-.. code:: python
     import numpy as np
     from scnn import SCNN, data
     from sklearn.metrics import f1_score
