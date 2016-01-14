@@ -9,6 +9,18 @@ import matplotlib.pyplot as plt
 
 import data
 
+def rw_laplacian(A):
+    Dm1 = np.zeros(A.shape)
+
+    degree = A.sum(0)
+
+    for i in range(A.shape[0]):
+        if degree[i] == 0:
+            Dm1[i,i] = 0.
+        else:
+            Dm1[i,i] = - 1. / degree[i]
+
+    return -np.asarray(Dm1.dot(A),dtype='float32')
 
 def A_power_series(A,k):
     """
@@ -29,6 +41,8 @@ def A_power_series(A,k):
             Apow.append(np.dot(A, Apow[-1]))
 
     return np.asarray(Apow, dtype='float32')
+
+
 
 
 # This class is not user facing; it contains the Lasagne internals for the SCNN model.
@@ -93,8 +107,9 @@ class SCNN:
     """
     The search-convolutional neural network model.
     """
-    def __init__(self, n_hops=2):
+    def __init__(self, n_hops=2, transform_fn=rw_laplacian):
         self.n_hops = n_hops
+        self.transform_fn = transform_fn
 
         # Initialize Theano variables
         self.var_A = T.matrix('A')
@@ -115,6 +130,9 @@ class SCNN:
         assert A.shape[0] == X.shape[0]
         assert X.shape[0] == Y.shape[0]
         assert len(Y.shape) > 1
+
+        if self.transform_fn is not None:
+            A = self.transform_fn(A)
 
         # Extract dimensions
         n_nodes = A.shape[0]
@@ -186,6 +204,9 @@ class SCNN:
             validation_loss_window[epoch % stop_window_size] = valid_loss
 
     def predict(self, A, X, test_indices):
+        if self.transform_fn is not None:
+            A = self.transform_fn(A)
+
         # Compute the matrix power series
         Apow = A_power_series(A, self.n_hops)
 
