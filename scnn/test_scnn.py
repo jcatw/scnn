@@ -17,7 +17,7 @@ def test_scnn():
     valid_indices = indices[n_nodes // 3:(2* n_nodes) // 3]
     test_indices  = indices[(2* n_nodes) // 3:]
 
-    scnn = SCNN()
+    scnn = SCNN(n_hops=2)
     scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices)
 
     preds = scnn.predict(A, X, test_indices)

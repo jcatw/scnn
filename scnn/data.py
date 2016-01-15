@@ -1,17 +1,7 @@
 __author__ = 'jatwood'
 
 import numpy as np
-
-import theano
-import theano.tensor as T
-
-import sys, os, glob
-
-import networkx as nx
-import re
-import pickle
-
-import hashlib
+import cPickle as cp
 
 
 def parse_cora(plot=False):
@@ -80,4 +70,47 @@ def parse_cora(plot=False):
         plt.imshow(adj)
         plt.savefig('../data/cora_adj.pdf')
 
-    return (adj.astype('float32'), features.astype('float32'), labels.astype('int32'))
+    return adj.astype('float32'), features.astype('float32'), labels.astype('int32')
+
+
+def parse_nci(graph_name='nci1.graph'):
+    path = "data/nci/"
+
+    with open(path+graph_name,'r') as f:
+        raw = cp.load(f)
+
+        n_classes = 2
+        n_graphs = len(raw['graph'])
+
+        A = []
+        rX = []
+        Y = np.zeros((n_graphs, n_classes), dtype='int32')
+
+        for i in range(n_graphs):
+            # Set label
+            Y[i][raw['labels'][i]] = 1
+
+            # Parse graph
+            G = raw['graph'][i]
+
+            n_nodes = len(G)
+
+            a = np.zeros((n_nodes,n_nodes), dtype='float32')
+            x = np.zeros((n_nodes,1), dtype='int32')
+
+            for node, meta in G.iteritems():
+                x[node,0] = meta['label'][0]
+                for neighbor in meta['neighbors']:
+                    a[node, neighbor] = 1
+
+            A.append(a)
+            rX.append(x)
+
+        maxval = max([max(x) for x in rX])
+
+        X = [np.zeros((rx.size, maxval+1), dtype='float32') for rx in rX]
+        for i in range(len(X)):
+            X[i][np.arange(rX[i].size),rX[i]] = 1
+
+    return A, X, Y
+

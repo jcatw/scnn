@@ -7,40 +7,7 @@ import theano.tensor as T
 import numpy as np
 import matplotlib.pyplot as plt
 
-def rw_laplacian(A):
-    Dm1 = np.zeros(A.shape)
-
-    degree = A.sum(0)
-
-    for i in range(A.shape[0]):
-        if degree[i] == 0:
-            Dm1[i,i] = 0.
-        else:
-            Dm1[i,i] = - 1. / degree[i]
-
-    return -np.asarray(Dm1.dot(A),dtype='float32')
-
-def A_power_series(A,k):
-    """
-    Computes [A**0, A**1, ..., A**k]
-
-    :param A: 2d numpy array
-    :param k: integer, degree of series
-    :return: 3d numpy array [A**0, A**1, ..., A**k]
-    """
-    assert k >= 0
-
-    Apow = [np.identity(A.shape[0])]
-
-    if k > 0:
-        Apow.append(A)
-
-        for i in range(2, k+1):
-            Apow.append(np.dot(A, Apow[-1]))
-
-    return np.asarray(Apow, dtype='float32')
-
-
+import util
 
 
 # This class is not user facing; it contains the Lasagne internals for the SCNN model.
@@ -71,8 +38,6 @@ class SearchConvolution(layers.MergeLayer):
 
         Apow = inputs[0]
         X = inputs[1]
-
-        #f_a2k = theano.function(inputs=[k, adj], outputs=adj_to_k(k, adj))
 
         def compute_output(i, w, a, x, h):
             """
@@ -105,7 +70,7 @@ class SCNN:
     """
     The search-convolutional neural network model.
     """
-    def __init__(self, n_hops=2, transform_fn=rw_laplacian):
+    def __init__(self, n_hops=2, transform_fn=util.rw_laplacian):
         self.n_hops = n_hops
         self.transform_fn = transform_fn
 
@@ -134,23 +99,26 @@ class SCNN:
 
         # Extract dimensions
         n_nodes = A.shape[0]
-        n_features = X.shape[1]
+        n_features = X.shape[1] + 1
         n_classes = Y.shape[1]
 
         n_batch = n_nodes // batch_size
 
         # Compute the matrix power series
-        Apow = A_power_series(A, self.n_hops)
+        Apow = util.A_power_series(A, self.n_hops)
+
+        # Add bias term to X
+        X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
 
         # Create Lasagne layers
         self.l_in_apow = lasagne.layers.InputLayer((self.n_hops, batch_size, n_nodes), input_var=self.var_Apow)
         self.l_in_x = lasagne.layers.InputLayer((n_nodes, n_features), input_var=self.var_X)
-        self.l_sc = SearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops, n_features)
+        self.l_sc = SearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features)
         self.l_out = layers.DenseLayer(self.l_sc, num_units=n_classes, nonlinearity=lasagne.nonlinearities.tanh)
 
         # Create symbolic representations of predictions, loss, parameters, and updates.
         prediction = layers.get_output(self.l_out)
-        loss = lasagne.objectives.aggregate(loss_fn(prediction, self.var_Y), mode='sum')
+        loss = lasagne.objectives.aggregate(loss_fn(prediction, self.var_Y), mode='mean')
         params = lasagne.layers.get_all_params(self.l_out)
         updates = update_fn(loss, params, learning_rate=learning_rate)
 
@@ -173,9 +141,10 @@ class SCNN:
                 start = batch * batch_size
                 end = min((batch + 1) * batch_size, train_indices.shape[0])
 
-                train_loss += apply_loss(Apow[:,train_indices[start:end],:],
-                                         X,
-                                         Y[train_indices[start:end],:])
+                if start < end:
+                    train_loss += apply_loss(Apow[:,train_indices[start:end],:],
+                                             X,
+                                             Y[train_indices[start:end],:])
 
             valid_loss = apply_loss(Apow[:,valid_indices,:],
                                     X,
@@ -206,7 +175,10 @@ class SCNN:
             A = self.transform_fn(A)
 
         # Compute the matrix power series
-        Apow = A_power_series(A, self.n_hops)
+        Apow = util.A_power_series(A, self.n_hops)
+
+        # add bias term to X
+        X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
 
         # Create symbolic representation of predictions
         pred = layers.get_output(self.l_out)
