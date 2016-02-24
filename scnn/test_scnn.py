@@ -20,6 +20,9 @@ def test_scnn():
     scnn = SCNN(n_hops=2)
     scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices)
 
+    probs = scnn.predict_proba(A, X, test_indices)
+    print probs
+
     preds = scnn.predict(A, X, test_indices)
     actuals = np.argmax(Y[test_indices,:], axis=1)
 

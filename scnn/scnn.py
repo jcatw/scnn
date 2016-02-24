@@ -189,3 +189,23 @@ class SCNN:
         # Return the predictions
         predictions = pred_fn(Apow[:,test_indices,:], X)
         return predictions
+
+    def predict_proba(self, A, X, test_indices):
+        if self.transform_fn is not None:
+            A = self.transform_fn(A)
+
+        # Compute the matrix power series
+        Apow = util.A_power_series(A, self.n_hops)
+
+        # add bias term to X
+        X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
+
+        # Create symbolic representation of predictions
+        pred = layers.get_output(self.l_out)
+
+        # Create a function that applies the model to data to predict a class
+        pred_fn = theano.function([self.var_Apow, self.var_X], (pred - pred.min(axis=1,keepdims=True)) / (pred - pred.min(axis=1,keepdims=True)).sum(axis=1,keepdims=True), allow_input_downcast=True)
+
+        # Return the predictions
+        predictions = pred_fn(Apow[:,test_indices,:], X)
+        return predictions
