@@ -204,7 +204,7 @@ class SCNN:
         pred = layers.get_output(self.l_out)
 
         # Create a function that applies the model to data to predict a class
-        pred_fn = theano.function([self.var_Apow, self.var_X], (pred - pred.min(axis=1,keepdims=True)) / (pred - pred.min(axis=1,keepdims=True)).sum(axis=1,keepdims=True), allow_input_downcast=True)
+        pred_fn = theano.function([self.var_Apow, self.var_X], T.exp(pred) / T.exp(pred).sum(axis=1,keepdims=True), allow_input_downcast=True)
 
         # Return the predictions
         predictions = pred_fn(Apow[:,test_indices,:], X)
