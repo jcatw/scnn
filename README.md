@@ -31,7 +31,7 @@ Usage
     scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices)
 
 	# Predict labels for the test set 
-    preds = scnn.predict(A, X, test_indices)
+    preds = scnn.predict(X, test_indices)
     actuals = np.argmax(Y[test_indices,:], axis=1)
 
 	# Display performance

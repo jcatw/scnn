@@ -107,6 +107,8 @@ class SCNN:
         # Compute the matrix power series
         Apow = util.A_power_series(A, self.n_hops)
 
+        self.Apow = Apow
+
         # Add bias term to X
         X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
 
@@ -170,12 +172,14 @@ class SCNN:
                     break
             validation_loss_window[epoch % stop_window_size] = valid_loss
 
-    def predict(self, A, X, test_indices):
-        if self.transform_fn is not None:
-            A = self.transform_fn(A)
-
-        # Compute the matrix power series
-        Apow = util.A_power_series(A, self.n_hops)
+    def predict(self, X, test_indices, A=None):
+        if A is None:
+            Apow = self.Apow
+        else:
+            if self.transform_fn is not None:
+                A = self.transform_fn(A)
+            # Compute the matrix power series
+            Apow = util.A_power_series(A, self.n_hops)
 
         # add bias term to X
         X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
@@ -190,12 +194,14 @@ class SCNN:
         predictions = pred_fn(Apow[:,test_indices,:], X)
         return predictions
 
-    def predict_proba(self, A, X, test_indices):
-        if self.transform_fn is not None:
-            A = self.transform_fn(A)
-
-        # Compute the matrix power series
-        Apow = util.A_power_series(A, self.n_hops)
+    def predict_proba(self, X, test_indices, A=None):
+        if A is None:
+            Apow = self.Apow
+        else:
+            if self.transform_fn is not None:
+                A = self.transform_fn(A)
+            # Compute the matrix power series
+            Apow = util.A_power_series(A, self.n_hops)
 
         # add bias term to X
         X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
