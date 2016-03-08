@@ -1,14 +1,15 @@
 __author__ = 'jatwood'
 
 import numpy as np
+from sklearn.metrics import f1_score
 
 import data
 from scnn import SCNN
 
-def test_scnn():
-    from sklearn.metrics import f1_score
+def maker_fn(data_fn, name):
+    print 'Testing %s...' % (name,)
 
-    A, X, Y = data.parse_cora()
+    A, X, Y = data_fn()
 
     n_nodes = A.shape[0]
 
@@ -27,6 +28,14 @@ def test_scnn():
     actuals = np.argmax(Y[test_indices,:], axis=1)
 
     print 'F score: %.4f' % (f1_score(actuals, preds))
+    print ''
+
+def test_scnn_cora():
+    maker_fn(data.parse_cora,'cora')
+
+def test_scnn_pubmed():
+    maker_fn(data.parse_pubmed,'pubmed')
+
 
 if __name__ == '__main__':
     import nose
