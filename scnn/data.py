@@ -3,9 +3,14 @@ __author__ = 'jatwood'
 import numpy as np
 import cPickle as cp
 
+import inspect
+import os
+
+current_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
+
 
 def parse_cora(plot=False):
-    path = "data/cora/"
+    path = "%s/data/cora/" % (current_dir,)
 
     id2index = {}
 
@@ -73,7 +78,7 @@ def parse_cora(plot=False):
     return adj.astype('float32'), features.astype('float32'), labels.astype('int32')
 
 def parse_pubmed():
-    path = 'data/Pubmed-Diabetes/data/'
+    path = '%s/data/Pubmed-Diabetes/data/' % (current_dir,)
 
     n_nodes = 19717
     n_features = 500
@@ -141,7 +146,7 @@ def parse_pubmed():
 
 
 def parse_nci(graph_name='nci1.graph', with_structural_features=False):
-    path = "data/nci/"
+    path = "%s/data/nci/" % (current_dir,)
 
     if graph_name == 'nci1.graph':
         maxval = 37
@@ -201,7 +206,7 @@ def parse_nci(graph_name='nci1.graph', with_structural_features=False):
 
 
 def parse_blogcatalog(target=1):
-    path = "data/blogcatalog/"
+    path = "%s/data/blogcatalog/" % (current_dir,)
 
     n_nodes = 10312
     n_features = 38
@@ -228,7 +233,7 @@ def parse_wikirfa(n_features = 100):
     #from sklearn.feature_extraction.text import CountVectorizer
     from sklearn.feature_extraction.text import HashingVectorizer
 
-    path = "data/wikirfa/"
+    path = "%s/data/wikirfa/" % (current_dir,)
 
     n_nodes = 10926
     n_edges = 176963  # number of +/- edges
@@ -321,7 +326,7 @@ def parse_wikirfa_edges_as_search(n_features = 100):
 
     from sklearn.feature_extraction.text import HashingVectorizer
 
-    path = "data/wikirfa/"
+    path = "%s/data/wikirfa/" % (current_dir,)
 
     n_nodes = 10926
     n_edges = 176963  # number of +/- edges
