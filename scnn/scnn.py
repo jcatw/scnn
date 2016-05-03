@@ -113,7 +113,7 @@ class SCNN:
         X = np.hstack([X, np.ones((X.shape[0],1))]).astype('float32')
 
         # Create Lasagne layers
-        self.l_in_apow = lasagne.layers.InputLayer((self.n_hops, batch_size, n_nodes), input_var=self.var_Apow)
+        self.l_in_apow = lasagne.layers.InputLayer((self.n_hops + 1, batch_size, n_nodes), input_var=self.var_Apow)
         self.l_in_x = lasagne.layers.InputLayer((n_nodes, n_features), input_var=self.var_X)
         self.l_sc = SearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features)
         self.l_out = layers.DenseLayer(self.l_sc, num_units=n_classes, nonlinearity=lasagne.nonlinearities.tanh)

@@ -3,3 +3,6 @@
 scnn.egg-info/
 .idea/
 dist
+results/
+*.pptx
+launch*.sh

@@ -15,15 +15,18 @@ class GraphSearchConvolution(layers.MergeLayer):
     A search-convolutional Lasagne layer.
     """
     def __init__(self, incomings, n_hops, n_features,
+                 op=T.mean,
                  W=lasagne.init.Normal(0.01),
                  nonlinearity=lasagne.nonlinearities.tanh,
                  **kwargs):
         super(GraphSearchConvolution, self).__init__(incomings, **kwargs)
 
-        self.W = self.add_param(W, (n_hops, n_features), name='W')
+        self.op = op
 
         self.n_hops = n_hops
         self.n_features = n_features
+
+        self.W = self.add_param(W, (self.n_hops, self.n_features), name='W')
 
         self.nonlinearity = nonlinearity
 
@@ -39,9 +42,9 @@ class GraphSearchConvolution(layers.MergeLayer):
         X = inputs[1]
 
         def compute_output(w, a, x):
-            return T.mean(T.dot(a, x).transpose()) * T.addbroadcast(T.reshape(w, (w.shape[0],1)),1)
+            return self.op(T.dot(a, x).transpose()) * T.addbroadcast(T.reshape(w, (w.shape[0],1)),1)
 
-        def scan_graphs(apow, x, w, h):
+        def scan_hops(apow, x, w, h):
             out, _ = theano.scan(fn=compute_output,
                                  non_sequences=[x],
                                  sequences=[w, apow],
@@ -49,7 +52,7 @@ class GraphSearchConvolution(layers.MergeLayer):
 
             return self.nonlinearity(out.transpose())
 
-        out, _ = theano.scan(fn=scan_graphs,
+        out, _ = theano.scan(fn=scan_hops,
                              non_sequences=[self.W, self.n_hops],
                              sequences=[Apow, X],
                              n_steps = X.shape[0])
@@ -58,6 +61,7 @@ class GraphSearchConvolution(layers.MergeLayer):
 
     def get_output_shape_for(self, input_shapes):
         shape = (input_shapes[0][0], self.n_hops, self.n_features)
+        print shape
         return shape
 
 
@@ -67,8 +71,12 @@ class GraphSCNN():
     The graph search-convolutional neural network model.
     """
 
-    def __init__(self, n_hops=2, transform_fn=util.rw_laplacian):
+    def __init__(self,
+                 n_hops=2,
+                 ops=(T.mean, T.min, T.max, T.std, T.ptp),
+                 transform_fn=util.rw_laplacian):
         self.n_hops = n_hops
+        self.ops = ops
         self.transform_fn = transform_fn
 
         # Initialize Theano variables
@@ -119,7 +127,12 @@ class GraphSCNN():
         # Create Lasagne layers
         self.l_in_apow = lasagne.layers.InputLayer((batch_size, self.n_hops + 1, max_nodes, max_nodes), input_var=self.var_Apow)
         self.l_in_x = lasagne.layers.InputLayer((n_graphs, max_nodes, n_features), input_var=self.var_X)
-        self.l_sc = GraphSearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features)
+        self.l_sc_components = [GraphSearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features, op=op) for op in self.ops]
+        #self.l_sc_mean = GraphSearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features, op=T.mean)
+        #self.l_sc_min = GraphSearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features, op=T.min)
+        #self.l_sc_max = GraphSearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features, op=T.max)
+        #self.l_sc = layers.ConcatLayer([self.l_sc_mean, self.l_sc_min, self.l_sc_max])
+        self.l_sc = layers.ConcatLayer(self.l_sc_components)
         self.l_out = layers.DenseLayer(self.l_sc, num_units=n_classes, nonlinearity=lasagne.nonlinearities.tanh)
 
         # Create symbolic representations of predictions, loss, parameters, and updates.
@@ -182,7 +195,7 @@ class GraphSCNN():
 
         # Extract dimensions
         n_graphs= len(A)
-        n_features = X[0].shape[1]
+        n_features = X[0].shape[1] + 1
         max_nodes = max([a.shape[0] for a in A])
 
         # Compute the matrix power series
@@ -195,7 +208,7 @@ class GraphSCNN():
         X_pad = np.zeros((n_graphs, max_nodes, n_features), dtype='float32')
         for i in range(n_graphs):
             n_nodes = X[i].shape[0]
-            X_pad[i,:n_nodes,:] = X[i]
+            X_pad[i,:n_nodes,:] = np.hstack([X[i], np.ones(X[i].shape[0]).reshape((X[i].shape[0],1))])  # add the bias feature in here
         X = X_pad
 
         # Create symbolic representation of predictions
