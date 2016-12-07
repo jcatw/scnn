@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from sklearn.metrics import f1_score, accuracy_score
 
-from scnn import SCNN
+from scnn import SCNN, DeepSCNN
 import data
 import util
 
@@ -25,6 +25,36 @@ def node_experiment(data_fn, name, n_hops, transform_fn=util.rw_laplacian, trans
 
     scnn = SCNN(n_hops=n_hops, transform_fn=transform_fn)
     scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices)
+
+    probs = scnn.predict_proba(X, test_indices)
+    print probs
+
+    preds = scnn.predict(X, test_indices)
+    actuals = np.argmax(Y[test_indices,:], axis=1)
+
+    f1_micro = f1_score(actuals, preds, average='micro')
+    f1_macro = f1_score(actuals, preds, average='macro')
+    accuracy = accuracy_score(actuals, preds)
+
+    print 'form: name,n_hops,transform_name,micro_f,macro_f,accuracy'
+    print '###RESULTS###: %s,%d,%s,%.8f,%.8f,%.8f' % (name, n_hops, transform_name, f1_micro, f1_macro, accuracy)
+
+def deep_node_experiment(data_fn, name, n_hops, n_layers, transform_fn=util.rw_laplacian, transform_name='rwl'):
+    print 'Running node experiment (%s)...' % (name,)
+
+    A, X, Y = data_fn()
+
+    n_nodes = A.shape[0]
+
+    indices = np.arange(n_nodes)
+    np.random.shuffle(indices)
+
+    train_indices = indices[:n_nodes // 3]
+    valid_indices = indices[n_nodes // 3:(2* n_nodes) // 3]
+    test_indices  = indices[(2* n_nodes) // 3:]
+
+    scnn = DeepSCNN(n_hops=n_hops, n_layers=n_layers, transform_fn=transform_fn)
+    scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices, stop_early=False, n_epochs=500)
 
     probs = scnn.predict_proba(X, test_indices)
     print probs
@@ -63,7 +93,10 @@ if __name__ == '__main__':
         name = args[0]
         data_fn = name_to_data[name]
         n_hops = int(args[1])
-        transform_name = sys.argv[3]
+        transform_name = args[2]
         transform_fn = transform_lookup[transform_name]
 
-        node_experiment(data_fn, name, n_hops=n_hops, transform_fn=transform_fn, transform_name=transform_name)
+        if len(args) == 3:
+            node_experiment(data_fn, name, n_hops=n_hops, transform_fn=transform_fn, transform_name=transform_name)
+        else:
+            deep_node_experiment(data_fn, name, n_hops, int(args[3]), transform_fn, transform_name)

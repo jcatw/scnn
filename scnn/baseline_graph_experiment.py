@@ -26,6 +26,7 @@ class GraphDecompositionModel:
         return np.asarray(graph_features)
 
     def fit(self, A, X, Y, train_indices, valid_indices, C=1.0):
+        self.n_classes = Y.shape[1]
         training_features = self.create_features(A[train_indices], X[train_indices])
 
         self.model = LogisticRegression(penalty=self.reg, C=C)
@@ -52,7 +53,7 @@ class GraphDecompositionModel:
         features = self.create_features(A[indices], X[indices])
 
         preds = self.model.predict(features)
-        preds_1hot = np.zeros((preds.shape[0], 2))
+        preds_1hot = np.zeros((preds.shape[0], self.n_classes))
         preds_1hot[np.arange(preds.shape[0]), preds] = 1
 
         return preds_1hot
@@ -126,6 +127,9 @@ if __name__ == '__main__':
     name_to_data = {
         'nci1': lambda: data.parse_nci(graph_name='nci1.graph'),
         'nci109': lambda: data.parse_nci(graph_name='nci109.graph'),
+        'mutag': lambda : data.parse_nci(graph_name='mutag.graph'),
+        'ptc': lambda : data.parse_nci(graph_name='ptc.graph'),
+        'enzymes': lambda : data.parse_nci(graph_name='enzymes.graph'),
         'nci1struct': lambda: data.parse_nci(graph_name='nci1.graph', with_structural_features=True),
         'nci109struct': lambda: data.parse_nci(graph_name='nci109.graph', with_structural_features=True),
     }
@@ -148,6 +152,36 @@ if __name__ == '__main__':
                  'window_size':10,
                  'ngram_type':0,
                  'sampling_type':0,
+                 'graphlet_size':0,
+                 'sample_size':2
+                 },
+        'mutag': {'num_dimensions':2,
+                 'kernel_type':1,
+                 'feature_type':3,
+                 'ds_name':'mutag',
+                 'window_size':2,
+                 'ngram_type':0,
+                 'sampling_type':1,
+                 'graphlet_size':0,
+                 'sample_size':2
+                 },
+        'enzymes': {'num_dimensions':2,
+                 'kernel_type':1,
+                 'feature_type':3,
+                 'ds_name':'enzymes',
+                 'window_size':2,
+                 'ngram_type':0,
+                 'sampling_type':1,
+                 'graphlet_size':0,
+                 'sample_size':2
+                 },
+        'ptc': {'num_dimensions':2,
+                 'kernel_type':1,
+                 'feature_type':3,
+                 'ds_name':'ptc',
+                 'window_size':2,
+                 'ngram_type':0,
+                 'sampling_type':1,
                  'graphlet_size':0,
                  'sample_size':2
                  },

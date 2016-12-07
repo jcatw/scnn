@@ -44,5 +44,16 @@ def A_power_series(A,k):
 
     return np.asarray(Apow, dtype='float32')
 
+def adjacency_matrix_to_list(A):
+    adjacency_list = []
+
+    n_nodes = A.shape[0]
+    for i in range(n_nodes):
+        for j in range(n_nodes):
+            if A[i,j] == 1:
+                adjacency_list.append([i,j])
+
+    return np.asarray(adjacency_list, 'float32')
+
 
 

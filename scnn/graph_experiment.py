@@ -22,7 +22,7 @@ def graph_experiment(data_fn, name, n_hops, transform_fn=util.rw_laplacian, tran
 
     scnn = GraphSCNN(n_hops=n_hops, transform_fn=transform_fn)
     scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices,
-             learning_rate=0.05, batch_size=100, n_epochs=500)
+             learning_rate=0.05, batch_size=len(train_indices) // 10, n_epochs=500)
 
     preds = scnn.predict(A, X, test_indices)
     actuals = np.argmax(Y[test_indices,:], axis=1)
@@ -44,7 +44,12 @@ if __name__ == '__main__':
     else:
         name_to_data = {
             'nci1': lambda : data.parse_nci('nci1.graph'),
+            #'nci1': lambda : data.parse_graph_data('nci1'),
             'nci109': lambda : data.parse_nci('nci109.graph'),
+            #'mutag': lambda : data.parse_graph_data('mutag'),
+            'mutag': lambda : data.parse_nci('mutag.graph'),
+            'enzymes': lambda : data.parse_nci('enzymes.graph'),
+            'ptc': lambda : data.parse_nci('ptc.graph'),
             'nci1struct': lambda: data.parse_nci(graph_name='nci1.graph', with_structural_features=True),
             'nci109struct': lambda: data.parse_nci(graph_name='nci109.graph', with_structural_features=True),
         }

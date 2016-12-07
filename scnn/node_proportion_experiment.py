@@ -42,7 +42,7 @@ def scnn_proportion_experiment(data_fn, name, n_hops, prop_valid, prop_test, tra
         accuracy = accuracy_score(actuals, preds)
 
         print 'form: name,n_hops,transform_name,micro_f,macro_f,accuracy'
-        print '###RESULTS###: %s,%d,%.2f,%s,%.8f,%.8f,%.8f' % (name, n_hops, train_prop, transform_name, f1_micro, f1_macro, accuracy)
+        print '###RESULTS###: %s,scnn%d%s,%.6f,%.8f,%.8f,%.8f' % (name, n_hops, transform_name, train_prop, f1_micro, f1_macro, accuracy)
 
 
 if __name__ == '__main__':
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     name = args[0]
     data_fn = name_to_data[name]
     n_hops = int(args[1])
-    transform_name = sys.argv[3]
+    transform_name = args[2]
     transform_fn = transform_lookup[transform_name]
 
-    scnn_proportion_experiment(data_fn, name, n_hops, 0.1, 0.2, transform_fn=transform_fn, transform_name=transform_name)
+    scnn_proportion_experiment(data_fn, name, n_hops, 0.1, 0.1, transform_fn=transform_fn, transform_name=transform_name)
