@@ -1,7 +1,7 @@
 SCNN
 ====
 
-An implementation of search-convolutional neural networks [1], a new model for graph-structured data.
+An implementation of ~~search-~~diffusion-convolutional neural networks, a new model for graph-structured data.
 
 Installation
 ------------
@@ -36,6 +36,10 @@ Usage
 
 	# Display performance
     print 'F score: %.4f' % (f1_score(actuals, preds))
+
+What's with the S?
+------------------
+Historical reasons - these were once called search-convolutional neural networks.
 
 References
 ----------
