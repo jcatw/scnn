@@ -269,3 +269,24 @@ class DeepSCNN(SCNN):
         for i in range(self.n_layers):
             self.l_deep = DeepSearchConvolution(self.l_deep, n_hops=self.n_hops + 1, n_features=n_features)
         self.l_out = layers.DenseLayer(self.l_deep, num_units=n_classes, nonlinearity=lasagne.nonlinearities.tanh)
+
+class DeepFeedForwardSCNN(SCNN):
+    def __init__(self, n_hops=2, n_layers=4, transform_fn=util.rw_laplacian):
+        self.n_hops = n_hops
+        self.n_layers = n_layers
+        self.transform_fn = transform_fn
+
+        # Initialize Theano variables
+        self.var_A = T.matrix('A')
+        self.var_Apow = T.tensor3('Apow')
+        self.var_X = T.matrix('X')
+        self.var_Y = T.imatrix('Y')
+
+    def _register_layers(self, batch_size, n_nodes, n_features, n_classes):
+        self.l_in_apow = lasagne.layers.InputLayer((self.n_hops + 1, batch_size, n_nodes), input_var=self.var_Apow)
+        self.l_in_x = lasagne.layers.InputLayer((n_nodes, n_features), input_var=self.var_X)
+        self.l_sc = SearchConvolution([self.l_in_apow, self.l_in_x], self.n_hops + 1, n_features)
+        self.l_deep = self.l_sc
+        for i in range(self.n_layers):
+            self.l_deep = layers.DenseLayer(self.l_deep, num_units=n_classes, nonlinearity=lasagne.nonlinearities.rectify)
+        self.l_out = layers.DenseLayer(self.l_deep, num_units=n_classes, nonlinearity=lasagne.nonlinearities.tanh)

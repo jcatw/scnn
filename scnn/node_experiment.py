@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from sklearn.metrics import f1_score, accuracy_score
 
-from scnn import SCNN, DeepSCNN
+from scnn import SCNN, DeepSCNN, DeepFeedForwardSCNN
 import data
 import util
 
@@ -53,7 +53,7 @@ def deep_node_experiment(data_fn, name, n_hops, n_layers, transform_fn=util.rw_l
     valid_indices = indices[n_nodes // 3:(2* n_nodes) // 3]
     test_indices  = indices[(2* n_nodes) // 3:]
 
-    scnn = DeepSCNN(n_hops=n_hops, n_layers=n_layers, transform_fn=transform_fn)
+    scnn = DeepFeedForwardSCNN(n_hops=n_hops, n_layers=n_layers, transform_fn=transform_fn)
     scnn.fit(A, X, Y, train_indices=train_indices, valid_indices=valid_indices, stop_early=False, n_epochs=500)
 
     probs = scnn.predict_proba(X, test_indices)
