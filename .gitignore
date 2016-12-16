@@ -6,3 +6,4 @@ dist
 results/
 *.pptx
 launch*.sh
+deploy.sh
