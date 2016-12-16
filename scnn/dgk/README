@@ -1,0 +1,5 @@
+Please refer to http://web.ics.purdue.edu/~ypinar/kdd for more details.
+
+Required libraries to run the package: numpy, scipy, networkx, gensim, pynauty.
+For Gensim, please see: https://radimrehurek.com/gensim
+For pynauty, please see: https://web.cs.dal.ca/~peter/software/pynauty
