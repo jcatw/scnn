@@ -1,6 +1,8 @@
 SCNN
 ====
 
+Note: A newer, cleaner implementation is now available at https://github.com/jcatw/dcnn.
+
 An implementation of ~~search-~~diffusion-convolutional neural networks, a new model for graph-structured data.
 
 Installation
